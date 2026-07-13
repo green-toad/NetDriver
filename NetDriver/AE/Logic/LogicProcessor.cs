@@ -11,12 +11,13 @@ namespace NetDriver.AE
         private IncomingEvent _incomingEvent;
 
         public readonly FrameControllerOutput output = new();
-        private readonly FrameControllerInput input = new();
+        private readonly FrameControllerInput _input = new();
 
-        private readonly IncomingController incoming;
-        private readonly OutcomingController outcoming;
+        private readonly IncomingController _incoming;
+        private readonly OutcomingController _outcoming;
 
         private readonly CancellationTokenSource _cts = new();
+        private readonly Socket _socket;
 
         private Task A;
         private Task B;
@@ -25,10 +26,11 @@ namespace NetDriver.AE
         private Task E;
         public LogicProcessor(IncomingEvent ievent, Socket sock)
         {
+            _socket = sock;
             _incomingEvent = ievent;
 
-            incoming = new(sock);
-            outcoming = new(sock);
+            _incoming = new(sock);
+            _outcoming = new(sock);
 
             A = Task.Run(ExecutorA);
             B = Task.Run(ExecutorB);
@@ -43,9 +45,9 @@ namespace NetDriver.AE
 
             try
             {
-                await foreach (var sf in input.simpleleOutput.Reader.ReadAllAsync(cts.Token))
+                await foreach (var sf in _input.simpleleOutput.Reader.ReadAllAsync(cts.Token))
                 {
-                    await _incomingEvent.Invoke(new ResultContent((ResultContent.Type)sf.header.type, sf.content.content, sf.content.frameuid));
+                    await _incomingEvent.Invoke(new ResultContent((ResultContent.Type)sf.header.type, sf.content.content, _socket, sf.content.frameuid));
                 }
             }
             catch (OperationCanceledException)
@@ -59,7 +61,7 @@ namespace NetDriver.AE
 
             try 
             { 
-                await foreach (var sf in input.answersOnReq.Reader.ReadAllAsync(cts.Token))
+                await foreach (var sf in _input.answersOnReq.Reader.ReadAllAsync(cts.Token))
                 {
                     output.CatchAnswer(sf);
                 }
@@ -76,7 +78,7 @@ namespace NetDriver.AE
             try
             {
 
-                await foreach (var sf in input.SystemSend.Reader.ReadAllAsync(cts.Token))
+                await foreach (var sf in _input.SystemSend.Reader.ReadAllAsync(cts.Token))
                 {
                     await output.SendSingle(sf);
                 }
@@ -94,7 +96,7 @@ namespace NetDriver.AE
             {
                 await foreach (var sf in output.outcomingStack.Reader.ReadAllAsync(cts.Token))
                 {
-                    await outcoming.Send(sf);
+                    await _outcoming.Send(sf);
                 }
             }
             catch (OperationCanceledException)
@@ -108,15 +110,15 @@ namespace NetDriver.AE
 
             while (!cts.IsCancellationRequested)
             {
-                var h = await incoming.GetChunk(9);
+                var h = await _incoming.GetChunk(9);
                 if (h.Length == 0) continue;
                 var header = FrameParser.UnpackHeader(h);
 
-                var c = await incoming.GetChunk(header.contentSize);
+                var c = await _incoming.GetChunk(header.contentSize);
                 if (c.Length == 0) continue;
                 var content = FrameParser.UnpackContent(c);
 
-                await input.Distribute(new netframe(header, content));
+                await _input.Distribute(new netframe(header, content));
             }
         }
 
@@ -124,10 +126,10 @@ namespace NetDriver.AE
         {
             _cts.Cancel();
 
-            await outcoming.DisposeAsync();
-            await incoming.DisposeAsync();
+            await _outcoming.DisposeAsync();
+            await _incoming.DisposeAsync();
             output.Dispose();
-            input.Dispose();
+            _input.Dispose();
 
             await A;
             await B;
@@ -139,8 +141,9 @@ namespace NetDriver.AE
         }
     }
 
-    public class ResultContent(ResultContent.Type type, byte[] content, Guid? uid=null)
+    public class ResultContent(ResultContent.Type type, byte[] content, Socket socket, Guid? uid=null)
     {
+        public readonly Socket socket = socket;
         public readonly Type type = type;
 
         public readonly byte[] content = content;

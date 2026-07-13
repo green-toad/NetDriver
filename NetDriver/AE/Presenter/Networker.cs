@@ -6,10 +6,12 @@ namespace NetDriver.AE
     public class Networker
     {
         private readonly LogicProcessor _logic;
+        private readonly Socket _socket;
 
         public Networker(Socket sock, IncomingEvent ievent)
         {
             _logic = new(ievent, sock);
+            _socket = sock;
         }
 
         public async Task<ResultContent?> Send(bool withcallback, byte[] content, int? timeout=null)
@@ -18,7 +20,7 @@ namespace NetDriver.AE
             {
                 var a = await _logic.output.SendWithCallback(FrameParser.BuildFrame(netframe.Type.callbackFrom, Guid.NewGuid(), content));
                 if (a != null)
-                    return new ResultContent((ResultContent.Type)a.Value.header.type, a.Value.content.content);
+                    return new ResultContent((ResultContent.Type)a.Value.header.type, a.Value.content.content, _socket);
                 return null;
             }
             else

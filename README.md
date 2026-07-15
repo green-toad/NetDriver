@@ -163,17 +163,9 @@ await socket.DisposeAsync();
 | AD | Legacy |
 | **AE** | **Active** |
 
-Latest commit: `cf94f6c` — small bug fix (Jun 25, 2026)
-
 ---
 
 ## Requirements
 
 - .NET 10.0
 - C# 13.0
-
----
-
-## License
-
-MIT

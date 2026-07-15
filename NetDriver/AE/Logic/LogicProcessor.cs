@@ -11,6 +11,7 @@ namespace NetDriver.AE
         private IncomingEvent _incomingEvent;
 
         public readonly FrameControllerOutput output = new();
+        public bool alive { get => _incoming.isOpen; }
         private readonly FrameControllerInput _input = new();
 
         private readonly IncomingController _incoming;

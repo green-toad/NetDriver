@@ -5,6 +5,7 @@ namespace NetDriver.AE
 {
     public class Networker
     {
+        public bool alive { get => _logic.alive; }
         private readonly LogicProcessor _logic;
         private readonly Socket _socket;
 

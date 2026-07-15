@@ -11,6 +11,8 @@ namespace NetDriver.AE
 {
     internal class IncomingController : IAsyncDisposable
     {
+        public bool isOpen { get; private set; } = true;
+
         private readonly Socket _socket;
         private readonly Task _readingTask;
         private readonly Pipe _pipe = new Pipe();
@@ -51,6 +53,7 @@ namespace NetDriver.AE
 
                     if (received == 0)
                     {
+                        isOpen = false;
                         break;
                     }
 

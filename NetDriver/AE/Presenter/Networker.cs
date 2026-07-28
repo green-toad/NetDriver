@@ -15,11 +15,11 @@ namespace NetDriver.AE
             _socket = sock;
         }
 
-        public async Task<ResultContent?> Send(bool withcallback, byte[] content, int? timeout=null)
+        public async Task<ResultContent?> Send(bool withcallback, byte[] content, int timeout=2000)
         {
             if (withcallback)
             {
-                var a = await _logic.output.SendWithCallback(FrameParser.BuildFrame(netframe.Type.callbackFrom, Guid.NewGuid(), content));
+                var a = await _logic.output.SendWithCallback(FrameParser.BuildFrame(netframe.Type.callbackFrom, Guid.NewGuid(), content), timeout);
                 if (a != null)
                     return new ResultContent((ResultContent.Type)a.Value.header.type, a.Value.content.content, _socket);
                 return null;

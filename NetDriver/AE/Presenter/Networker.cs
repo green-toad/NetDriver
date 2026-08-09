@@ -5,13 +5,12 @@ namespace NetDriver.AE
 {
     public class Networker
     {
-        public bool alive { get => _logic.alive; }
         private readonly LogicProcessor _logic;
         private readonly Socket _socket;
 
-        public Networker(Socket sock, IncomingEvent ievent)
+        public Networker(Socket sock, IncomingEvent ievent, DisconnectEvent devent)
         {
-            _logic = new(ievent, sock);
+            _logic = new(ievent, devent, sock);
             _socket = sock;
         }
 

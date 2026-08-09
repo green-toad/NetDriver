@@ -5,13 +5,14 @@ using System.Text;
 
 namespace NetDriver.AE
 {
-    public delegate Task IncomingEvent(ResultContent content); 
+    public delegate Task IncomingEvent(ResultContent content);
+    public delegate void DisconnectEvent(Socket sock);
     internal class LogicProcessor : IAsyncDisposable
     {
         private IncomingEvent _incomingEvent;
+        private DisconnectEvent _disconnectEvent;
 
         public readonly FrameControllerOutput output = new();
-        public bool alive { get => _incoming.isOpen; }
         private readonly FrameControllerInput _input = new();
 
         private readonly IncomingController _incoming;
@@ -25,10 +26,11 @@ namespace NetDriver.AE
         private Task C;
         private Task D;
         private Task E;
-        public LogicProcessor(IncomingEvent ievent, Socket sock)
+        public LogicProcessor(IncomingEvent ievent, DisconnectEvent devent, Socket sock)
         {
             _socket = sock;
             _incomingEvent = ievent;
+            _disconnectEvent = devent;
 
             _incoming = new(sock);
             _outcoming = new(sock);
@@ -121,6 +123,8 @@ namespace NetDriver.AE
 
                 await _input.Distribute(new netframe(header, content));
             }
+
+            _disconnectEvent.Invoke(_socket);
         }
 
         public async ValueTask DisposeAsync()

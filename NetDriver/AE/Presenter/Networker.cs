@@ -3,14 +3,16 @@ using System.Net.Sockets;
 
 namespace NetDriver.AE
 {
+    public delegate Task<byte[]> EncryptMethod(byte[] content);
+    public delegate Task<byte[]> DecryptMethod(byte[] content);
     public class Networker
     {
         private readonly LogicProcessor _logic;
         private readonly Socket _socket;
 
-        public Networker(Socket sock, IncomingEvent ievent, DisconnectEvent devent)
+        public Networker(Socket sock, IncomingEvent ievent, DisconnectEvent devent, EncryptMethod? emethod=null, DecryptMethod? dmethod=null)
         {
-            _logic = new(ievent, devent, sock);
+            _logic = new(ievent, devent, sock, emethod, dmethod);
             _socket = sock;
         }
 

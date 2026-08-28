@@ -11,16 +11,12 @@
       "RelativeMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|solutionrelative:netdriver\\ae\\transport\\incomingthread.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|c:\\users\\suzi\\documents\\projects\\csp\\netdriver\\netdriver\\ae\\transport\\outcomingthread.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|solutionrelative:netdriver\\ae\\transport\\outcomingthread.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|c:\\users\\suzi\\documents\\projects\\csp\\netdriver\\netdriver\\ae\\presenter\\networker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|solutionrelative:netdriver\\ae\\presenter\\networker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|c:\\users\\suzi\\documents\\projects\\csp\\netdriver\\netdriver\\ae\\logic\\framecontrollerinput.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|solutionrelative:netdriver\\ae\\logic\\framecontrollerinput.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|c:\\users\\suzi\\documents\\projects\\csp\\netdriver\\netdriver\\ae\\presenter\\networker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|solutionrelative:netdriver\\ae\\presenter\\networker.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{EBB2E9B0-9063-EC1D-3393-2CDA42FCC695}|NetDriver.csproj|c:\\users\\suzi\\documents\\projects\\csp\\netdriver\\netdriver\\ae\\logic\\framecontrolleroutput.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -34,43 +30,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 625,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "OutcomingThread.cs",
-              "DocumentMoniker": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Transport\\OutcomingThread.cs",
-              "RelativeDocumentMoniker": "NetDriver\\AE\\Transport\\OutcomingThread.cs",
-              "ToolTip": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Transport\\OutcomingThread.cs",
-              "RelativeToolTip": "NetDriver\\AE\\Transport\\OutcomingThread.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAANAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-05-24T19:46:37.15Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "Networker.cs",
               "DocumentMoniker": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Presenter\\Networker.cs",
               "RelativeDocumentMoniker": "NetDriver\\AE\\Presenter\\Networker.cs",
               "ToolTip": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Presenter\\Networker.cs",
               "RelativeToolTip": "NetDriver\\AE\\Presenter\\Networker.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAABBAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-24T19:10:45.555Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 4,
               "Title": "FrameControllerOutput.cs",
               "DocumentMoniker": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Logic\\FrameControllerOutput.cs",
               "RelativeDocumentMoniker": "NetDriver\\AE\\Logic\\FrameControllerOutput.cs",
               "ToolTip": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Logic\\FrameControllerOutput.cs",
               "RelativeToolTip": "NetDriver\\AE\\Logic\\FrameControllerOutput.cs",
-              "ViewState": "AgIAAGYAAAAAAAAAAAAEwJQAAAAYAAAAAAAAAA==",
+              "ViewState": "AgIAAGYAAAAAAAAAAAAEwJQAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-24T19:03:49.477Z",
               "EditorCaption": ""
@@ -96,7 +79,7 @@
               "RelativeDocumentMoniker": "NetDriver\\AE\\Logic\\LogicProcessor.cs",
               "ToolTip": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Logic\\LogicProcessor.cs",
               "RelativeToolTip": "NetDriver\\AE\\Logic\\LogicProcessor.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAC8AAACNAAAAAAAAAA==",
+              "ViewState": "AgIAABQAAAAAAAAAAAAAwCEAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-24T19:00:26.404Z",
               "EditorCaption": ""
@@ -109,7 +92,7 @@
               "RelativeDocumentMoniker": "NetDriver\\AE\\Transport\\IncomingThread.cs",
               "ToolTip": "C:\\Users\\suzi\\Documents\\projects\\csP\\NetDriver\\NetDriver\\AE\\Transport\\IncomingThread.cs",
               "RelativeToolTip": "NetDriver\\AE\\Transport\\IncomingThread.cs",
-              "ViewState": "AgIAADUAAAAAAAAAAAAvwGAAAAAjAAAAAAAAAA==",
+              "ViewState": "AgIAAD8AAAAAAAAAAAAowBYAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-24T18:59:20.607Z",
               "EditorCaption": ""

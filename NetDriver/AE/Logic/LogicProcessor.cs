@@ -17,6 +17,8 @@ namespace NetDriver.AE
 
         private readonly IncomingController _incoming;
         private readonly OutcomingController _outcoming;
+        private readonly EncryptMethod? _encrypt;
+        private readonly DecryptMethod? _decrypt;
 
         private readonly CancellationTokenSource _cts = new();
         private readonly Socket _socket;
@@ -26,11 +28,13 @@ namespace NetDriver.AE
         private Task C;
         private Task D;
         private Task E;
-        public LogicProcessor(IncomingEvent ievent, DisconnectEvent devent, Socket sock)
+        public LogicProcessor(IncomingEvent ievent, DisconnectEvent devent, Socket sock, EncryptMethod? encryptMethod, DecryptMethod? decryptMethod)
         {
             _socket = sock;
             _incomingEvent = ievent;
             _disconnectEvent = devent;
+            _encrypt = encryptMethod;
+            _decrypt = decryptMethod;
 
             _incoming = new(sock);
             _outcoming = new(sock);
@@ -99,7 +103,8 @@ namespace NetDriver.AE
             {
                 await foreach (var sf in output.outcomingStack.Reader.ReadAllAsync(cts.Token))
                 {
-                    await _outcoming.Send(sf);
+                    var toSend = _encrypt == null ? sf : await _encrypt(sf);
+                    await _outcoming.Send(toSend);
                 }
             }
             catch (OperationCanceledException)
@@ -115,10 +120,12 @@ namespace NetDriver.AE
             {
                 var h = await _incoming.GetChunk(9);
                 if (h.Length == 0) continue;
+                if (_decrypt != null) h = await _decrypt(h);
                 var header = FrameParser.UnpackHeader(h);
 
                 var c = await _incoming.GetChunk(header.contentSize);
                 if (c.Length == 0) continue;
+                if (_decrypt != null) c = await _decrypt(c);
                 var content = FrameParser.UnpackContent(c);
 
                 await _input.Distribute(new netframe(header, content));

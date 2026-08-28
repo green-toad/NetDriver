@@ -116,41 +116,97 @@ Each transmitted unit is a structured frame with the following layout:
 ## Usage Example
 
 ```csharp
+using System;
+using System.Net;
+using System.Net.Sockets;
+using AVcontrol;
 using NetDriver.AE;
 
-// Establish socket connection
-var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-await socket.ConnectAsync("127.0.0.1", 8080);
-
-// Define incoming event handler
-async Task OnIncoming(ResultContent result)
+namespace QA
 {
-    switch (result.type)
+    public class Program
     {
-        case ResultContent.Type.single:
-            Console.WriteLine($"Received: {Encoding.UTF8.GetString(result.content)}");
-            break;
-        case ResultContent.Type.from:
-            // Respond to request
-            await networker.Answer(Encoding.UTF8.GetBytes("ACK"), result.frameuid.Value);
-            break;
+        public static async Task Main(string[] args)
+        {
+            var a = new Side();
+            var b = new Side();
+
+            await Task.WhenAll([
+                b.Init(Side.Role.ServerSide),
+                a.Init(Side.Role.ClientSide),
+            ]);
+
+            await a.networker.Send(false, [1, 2, 3, 1, 3]);
+            await b.networker.Send(false, [1, 2, 3, 1, 3]);
+
+            await a.networker.SendFile("/home/nyashka/.config/wallpapers/HONjgUobgAAnUqL.jpg", FileParametrs.Random, 1024 * 16);
+
+            Console.ReadKey();
+
+            await a.DisposeAsync();
+            await b.DisposeAsync();
+        }
+    }
+
+    internal class Side : IAsyncDisposable
+    {
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Socket _socket;
+        public Networker networker;
+        public Side()
+        {
+            _socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
+            Console.Write("Start!\n");
+        }
+
+        public async Task Init(Role role)
+        {
+            switch(role)
+            {
+                case Role.ClientSide:
+                    await _socket.ConnectAsync(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 22333), _cts.Token);
+                    networker = new(_socket, IncomingEvent, DisconnectEvent);
+                    break;
+                case Role.ServerSide:
+                    _socket.Bind(new IPEndPoint(IPAddress.Any, 22333));
+                    _socket.Listen();
+                    networker = new(await _socket.AcceptAsync(_cts.Token), IncomingEvent, DisconnectEvent);
+                    break;
+            }
+        }
+
+        private async Task IncomingEvent(ResultContent result)
+        {
+            Console.Write("че то поймал\n");
+        }
+
+        private async void DisconnectEvent(Socket sock)
+        {
+            await DisposeAsync();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            _cts.Cancel();
+
+            _socket.Disconnect(false);
+            _socket.Close();
+            _socket.Dispose();
+            
+
+            await networker.Dispose();
+
+            _cts.Dispose();
+        }
+
+        public enum Role
+        {
+            ServerSide,
+            ClientSide,
+        }
     }
 }
-
-// Initialize networker
-var networker = new Networker(socket, OnIncoming);
-
-// Send a message (no response expected)
-await networker.Send(false, Encoding.UTF8.GetBytes("Hello"));
-
-// Send with callback (expects response)
-var response = await networker.Send(true, Encoding.UTF8.GetBytes("Request"));
-if (response != null)
-    Console.WriteLine($"Response: {Encoding.UTF8.GetString(response.content)}");
-
-// Cleanup
-await networker.Dispose();
-await socket.DisposeAsync();
 ```
 
 ---

@@ -27,6 +27,7 @@ namespace NetDriver.AE
             callbackInto = 2, // есть сам ответ
             configurateFlow = 3,
             flowPart = 4,
+            PING = 5, // системный мусор
         }
     }
 }

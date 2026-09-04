@@ -17,6 +17,13 @@ namespace NetDriver.AE
 
         private readonly ConcurrentDictionary<Guid, ContentBuilder> builderList = new();
 
+        private readonly Func<Guid, Task> PONG;
+
+        public FrameControllerInput(Func<Guid, Task> pong)
+        {
+            PONG = pong;
+        }
+
         public async Task Distribute(netframe frame)
         {
             switch (frame.header.type)
@@ -54,6 +61,10 @@ namespace NetDriver.AE
                     await SystemSend.Writer.WriteAsync(FrameParser.BuildFrame(netframe.Type.callbackInto, frame.content.frameuid, ToBinary.Utf8("yes")));
 
                     break;
+                case netframe.Type.PING:
+                    await PONG(frame.content.frameuid);
+                    break;
+
             }
         }
 

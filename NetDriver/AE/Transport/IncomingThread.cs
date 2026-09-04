@@ -67,7 +67,7 @@ namespace NetDriver.AE
         public async Task<byte[]> GetChunk(uint chunkSize)
         {
             if (_disposed)
-                return new byte[0];
+                return [0];
 
             var result = new byte[chunkSize];
             int totalRead = 0;

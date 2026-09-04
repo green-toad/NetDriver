@@ -13,12 +13,15 @@ namespace NetDriver.AE
         private DisconnectEvent _disconnectEvent;
 
         public readonly FrameControllerOutput output = new();
-        private readonly FrameControllerInput _input = new();
+        private readonly FrameControllerInput _input;
 
         private readonly IncomingController _incoming;
         private readonly OutcomingController _outcoming;
+
         private readonly EncryptMethod? _encrypt;
         private readonly DecryptMethod? _decrypt;
+
+        private readonly LiveChecker _pingMachine;
 
         private readonly CancellationTokenSource _cts = new();
         private readonly Socket _socket;
@@ -36,8 +39,16 @@ namespace NetDriver.AE
             _encrypt = encryptMethod;
             _decrypt = decryptMethod;
 
+            _input = new(async (Guid frameuid) =>
+            {
+                Console.Write("я отвечаю на пинг\n");
+                await output.SendSingle(FrameParser.BuildFrame(netframe.Type.callbackInto, frameuid, [0]));
+            });
+
             _incoming = new(sock);
             _outcoming = new(sock);
+
+            _pingMachine = new(() => { _disconnectEvent(_socket); }, output, 3);
 
             A = Task.Run(ExecutorA);
             B = Task.Run(ExecutorB);

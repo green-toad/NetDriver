@@ -25,21 +25,24 @@ namespace NetDriver.AE
             while(!_cts.IsCancellationRequested)
             {
                 await Task.Delay(1000 * 25);
-
+                Console.Write("пингую сторону\n");
                 var res = await _outputControl.SendWithCallback(FrameParser.BuildFrame(netframe.Type.PING, Guid.NewGuid(), [1]));
                 if (res == null)
                 {
                     counter++;
+                    Console.Write("смерть\n");
                     continue;
                 }
                 else if (res.Value.content.content[0] != 0)
                 {
                     counter++;
+                    Console.Write("смерть\n");
                     continue;
                 }
                 else
                 {
                     counter = 0;
+                    Console.Write("он жив =)\n");
                 }
 
                 if (counter >= _timeout)

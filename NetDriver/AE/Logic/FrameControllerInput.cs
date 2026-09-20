@@ -8,7 +8,7 @@ using System.Threading.Channels;
 
 namespace NetDriver.AE
 {
-    internal class FrameControllerInput : IDisposable
+    internal class FrameControllerInput : IAsyncDisposable
     {
         public readonly Channel<netframe> simpleleOutput = Channel.CreateUnbounded<netframe>();
         public readonly Channel<netframe> answersOnReq = Channel.CreateUnbounded<netframe>();
@@ -74,11 +74,19 @@ namespace NetDriver.AE
                 await res.DisposeAsync();
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            simpleleOutput.Writer.TryComplete();
-            answersOnReq.Writer.TryComplete();
-            SystemSend.Writer.TryComplete();
+            foreach(var suid in builderList.Keys)
+            {
+                if(builderList.TryRemove(suid, out var builder))
+                {
+                    await builder.DisposeAsync();
+                }
+            }
+
+            simpleleOutput.Writer.Complete();
+            answersOnReq.Writer.Complete();
+            SystemSend.Writer.Complete();
         }
     }
 }

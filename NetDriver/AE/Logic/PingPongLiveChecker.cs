@@ -24,9 +24,14 @@ namespace NetDriver.AE
             UInt16 counter = 0;
             while(!_cts.IsCancellationRequested)
             {
-                await Task.Delay(1000 * 25);
+                await Task.Delay(1000 * 25, _cts.Token);
                 Console.Write("пингую сторону\n");
                 var res = await _outputControl.SendWithCallback(FrameParser.BuildFrame(netframe.Type.PING, Guid.NewGuid(), [1]));
+                if (counter >= _timeout)
+                {
+                    _disconnect();
+                }
+                
                 if (res == null)
                 {
                     counter++;
@@ -43,11 +48,6 @@ namespace NetDriver.AE
                 {
                     counter = 0;
                     Console.Write("он жив =)\n");
-                }
-
-                if (counter >= _timeout)
-                {
-                    _disconnect();
                 }
             }
         }

@@ -95,7 +95,6 @@ namespace NetDriver.AE
 
             try
             {
-
                 await foreach (var sf in _input.SystemSend.Reader.ReadAllAsync(cts.Token))
                 {
                     await output.SendSingle(sf);
@@ -129,17 +128,23 @@ namespace NetDriver.AE
 
             while (!cts.IsCancellationRequested)
             {
-                var h = await _incoming.GetChunk(9);
-                if (h.Length == 0) continue;
-                if (_decrypt != null) h = await _decrypt(h);
-                var header = FrameParser.UnpackHeader(h);
+                try{
+                    var h = await _incoming.GetChunk(9);
+                    if (h.Length == 0) continue;
+                    if (_decrypt != null) h = await _decrypt(h);
+                    var header = FrameParser.UnpackHeader(h);
 
-                var c = await _incoming.GetChunk(header.contentSize);
-                if (c.Length == 0) continue;
-                if (_decrypt != null) c = await _decrypt(c);
-                var content = FrameParser.UnpackContent(c);
+                    var c = await _incoming.GetChunk(header.contentSize);
+                    if (c.Length == 0) continue;
+                    if (_decrypt != null) c = await _decrypt(c);
+                    var content = FrameParser.UnpackContent(c);
 
-                await _input.Distribute(new netframe(header, content));
+                    await _input.Distribute(new netframe(header, content));
+                }
+                catch(InvalidOperationException)
+                {
+                    break;
+                }
             }
 
             _disconnectEvent.Invoke(_socket);
@@ -149,10 +154,12 @@ namespace NetDriver.AE
         {
             _cts.Cancel();
 
+            await _pingMachine.DisposeAsync();
+
             await _outcoming.DisposeAsync();
             await _incoming.DisposeAsync();
-            output.Dispose();
-            _input.Dispose();
+            await output.DisposeAsync();
+            await _input.DisposeAsync();
 
             await A;
             await B;

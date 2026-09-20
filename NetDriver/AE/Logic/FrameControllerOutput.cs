@@ -8,7 +8,7 @@ using System.Threading.Channels;
 
 namespace NetDriver.AE
 {
-    internal class FrameControllerOutput : IDisposable
+    internal class FrameControllerOutput : IAsyncDisposable
     {
         private readonly CancellationTokenSource _cts = new();
 
@@ -18,8 +18,7 @@ namespace NetDriver.AE
 
         public async Task SendSingle(netframe message)
         {
-            await outcomingStack.Writer.WriteAsync(FrameBuilder.PackHeader(message.header));
-            await outcomingStack.Writer.WriteAsync(FrameBuilder.PackContent(message.content));
+            await outcomingStack.Writer.WriteAsync(FrameBuilder.PackFrame(message));
         }
 
         public async Task<netframe?> SendWithCallback(netframe message, int timeout = 2000)
@@ -52,7 +51,7 @@ namespace NetDriver.AE
 
         public bool CatchAnswer(netframe content)
         {
-            if (waitingCallback.TryGetValue(content.content.frameuid, out var res))
+            if (waitingCallback.TryRemove(content.content.frameuid, out var res))
             {
                 res.TrySetResult(content);
                 return true;
@@ -157,7 +156,7 @@ namespace NetDriver.AE
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             _cts.Cancel();
             outcomingStack.Writer.TryComplete();

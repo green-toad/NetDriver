@@ -15,12 +15,14 @@ namespace NetDriver.AE
         private readonly Task _readingTask;
         private readonly Pipe _pipe = new Pipe();
         private readonly CancellationTokenSource _cts = new();
+        private readonly DecryptMethod? _dec;
         private bool _disposed;
 
-        public IncomingController(Socket socket)
+        public IncomingController(Socket socket, DecryptMethod? dec)
         {
             _socket = socket ?? throw new ArgumentNullException(nameof(socket));
             _readingTask = ReadingAsync();
+            _dec = dec;
         }
         private async Task ReadingAsync()
         {
@@ -53,8 +55,8 @@ namespace NetDriver.AE
                     {
                         break;
                     }
-
-                    await _pipe.Writer.WriteAsync(buffer.AsMemory(0, received), _cts.Token);
+                    byte[] res = _dec != null ? await _dec(buffer) : buffer;
+                    await _pipe.Writer.WriteAsync(res.AsMemory(0, received), _cts.Token);
                 }
             }
             finally
@@ -102,14 +104,18 @@ namespace NetDriver.AE
         {
             if (_disposed) return;
             _disposed = true;
+            try
+            {
+                _cts.Cancel();
 
-            _cts.Cancel();
+                await _readingTask.ConfigureAwait(false);
 
-            await _readingTask.ConfigureAwait(false);
-
-            _cts.Dispose();
-            _pipe.Writer.Complete();
-            _pipe.Reader.Complete();
+                _cts.Dispose();
+                _pipe.Writer.Complete();
+                _pipe.Reader.Complete();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Console.Write("[incoming thread] " + e + "\n"); }
         }
     }
 }

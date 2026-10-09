@@ -158,9 +158,14 @@ namespace NetDriver.AE
 
         public async ValueTask DisposeAsync()
         {
-            _cts.Cancel();
-            outcomingStack.Writer.TryComplete();
-            _cts.Dispose();
+            try
+            {
+                _cts.Cancel();
+                outcomingStack.Writer.TryComplete();
+                _cts.Dispose();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Console.Write("[Frame out controller] " + e + "\n"); }
         }
     }
 }

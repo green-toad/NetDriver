@@ -13,11 +13,13 @@ namespace NetDriver.AE
         private readonly Task writing;
         private readonly Channel<byte[]> outcomingBuffer = Channel.CreateUnbounded<byte[]>();
         private readonly CancellationTokenSource _cts = new();
+        private readonly EncryptMethod? _enc;
 
-        public OutcomingController(Socket sock)
+        public OutcomingController(Socket sock, EncryptMethod? enc)
         {
             socket = sock;
             writing = Sending();
+            _enc = enc;
         }
 
         private async Task Sending()
@@ -27,7 +29,7 @@ namespace NetDriver.AE
                 while (!_cts.IsCancellationRequested)
                 {
                     var content = await outcomingBuffer.Reader.ReadAsync(_cts.Token);
-
+                    var toSend = _enc == null ? content : await _enc(content);
                     await socket.SendAsync(content);
                 }
             }
@@ -47,9 +49,15 @@ namespace NetDriver.AE
 
         public async ValueTask DisposeAsync()
         {
-            _cts.Cancel();
-            await writing;
-            _cts.Dispose();
+            try
+            {
+                _cts.Cancel();
+                await writing;
+                _cts.Dispose();
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Console.Write("[outcoming thread] " + e + "\n"); }
+
         }
     }
 }

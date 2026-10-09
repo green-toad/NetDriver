@@ -31,7 +31,7 @@ namespace NetDriver.AE
                 {
                     _disconnect();
                 }
-                
+
                 if (res == null)
                 {
                     counter++;
@@ -56,7 +56,9 @@ namespace NetDriver.AE
         {
             _cts.Cancel();
 
-            await _pulse;
+            try { await _pulse; }
+            catch (OperationCanceledException) { }
+            catch (Exception e) { Console.Write("[ping machine] " + e + "\n"); }
 
             _cts.Dispose();
         }

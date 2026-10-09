@@ -45,8 +45,8 @@ namespace NetDriver.AE
                 await output.SendSingle(FrameParser.BuildFrame(netframe.Type.callbackInto, frameuid, [0]));
             });
 
-            _incoming = new(sock);
-            _outcoming = new(sock);
+            _incoming = new(sock, _decrypt);
+            _outcoming = new(sock, _encrypt);
 
             _pingMachine = new(() => { _disconnectEvent(_socket); }, output, 3);
 
@@ -77,8 +77,8 @@ namespace NetDriver.AE
         {
             var cts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
 
-            try 
-            { 
+            try
+            {
                 await foreach (var sf in _input.answersOnReq.Reader.ReadAllAsync(cts.Token))
                 {
                     output.CatchAnswer(sf);
@@ -113,8 +113,8 @@ namespace NetDriver.AE
             {
                 await foreach (var sf in output.outcomingStack.Reader.ReadAllAsync(cts.Token))
                 {
-                    var toSend = _encrypt == null ? sf : await _encrypt(sf);
-                    await _outcoming.Send(toSend);
+                    // var toSend = _encrypt == null ? sf : await _encrypt(sf);
+                    await _outcoming.Send(sf);
                 }
             }
             catch (OperationCanceledException)
@@ -131,12 +131,12 @@ namespace NetDriver.AE
                 try{
                     var h = await _incoming.GetChunk(9);
                     if (h.Length == 0) continue;
-                    if (_decrypt != null) h = await _decrypt(h);
+                    // if (_decrypt != null) h = await _decrypt(h);
                     var header = FrameParser.UnpackHeader(h);
 
                     var c = await _incoming.GetChunk(header.contentSize);
                     if (c.Length == 0) continue;
-                    if (_decrypt != null) c = await _decrypt(c);
+                    // if (_decrypt != null) c = await _decrypt(c);
                     var content = FrameParser.UnpackContent(c);
 
                     await _input.Distribute(new netframe(header, content));
@@ -161,11 +161,11 @@ namespace NetDriver.AE
             await output.DisposeAsync();
             await _input.DisposeAsync();
 
-            await A;
-            await B;
-            await C;
-            await D;
-            await E;
+            try { await A; } catch { }
+            try { await B; } catch { }
+            try { await C; } catch { }
+            try { await D; } catch { }
+            try { await E; } catch { }
 
             _cts.Dispose();
         }

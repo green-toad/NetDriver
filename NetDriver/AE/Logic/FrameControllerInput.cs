@@ -78,10 +78,15 @@ namespace NetDriver.AE
         {
             foreach(var suid in builderList.Keys)
             {
-                if(builderList.TryRemove(suid, out var builder))
+                try
                 {
-                    await builder.DisposeAsync();
+                    if (builderList.TryRemove(suid, out var builder))
+                    {
+                        await builder.DisposeAsync();
+                    }
                 }
+                catch (OperationCanceledException) { }
+                catch (Exception e) { Console.Write("[frame input controller] " + e + "\n"); }
             }
 
             simpleleOutput.Writer.Complete();

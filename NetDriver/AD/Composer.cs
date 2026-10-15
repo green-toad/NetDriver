@@ -26,7 +26,9 @@ namespace NetDriver.AD
     // (^‿^)
     delegate void DisconnectLink(Socket socket);
     delegate void CatRetrievalEvent(Cat cat);
-    delegate void CatSendEvent(Cat cat);
+
+    delegate Task<byte[]> Encrypt(byte[]);
+    delegate Task<byte[]> Decrypt(byte[]);
 
 
 
@@ -39,27 +41,43 @@ namespace NetDriver.AD
 
         public DisconnectLink DisconnectEvent { get; }
         public CatRetrievalEvent ToUserEvent { get; }
-        public CatSendEvent FromUserEvent { get; }
+
+        public Encrypt EncFunc { get; }
+        public Decrypt DecFunc { get; }
     }
     internal class Composer : IAsyncDisposable, IComposer
     {
-        public PipeWriter Inbounds => throw new NotImplementedException();
+        public PipeWriter Inbounds => _inbounds;
 
-        public Channel<Cat> Outbounds => throw new NotImplementedException();
+        public Channel<Cat> Outbounds => _outbounds;
 
-        public CancellationToken Ct => throw new NotImplementedException();
+        public CancellationToken Ct => _cts.Token;
 
-        public Socket Socket => throw new NotImplementedException();
+        public Socket Socket => _socket;
 
-        public DisconnectLink DisconnectEvent => throw new NotImplementedException();
+        public DisconnectLink DisconnectEvent => _disconnect;
 
-        public CatRetrievalEvent ToUserEvent => throw new NotImplementedException();
+        public CatRetrievalEvent ToUserEvent => _catch;
 
-        public CatSendEvent FromUserEvent => throw new NotImplementedException();
 
-        public ValueTask DisposeAsync()
+        private readonly PipeWriter _inbounds = new();
+        private readonly Channel<Cat> _outbounds = Channel<Cat>.CreateBounded<Cat>(100);
+        private readonly CancellationTokenSource _cts = new();
+        private readonly Socket _socket;
+        private readonly DisconnectEvent _disconnect;
+        private readonly CatRetrievalEvent _catch;
+
+        pbulc Composer(Socket socket, DisconnectEvent disEv, CatRetrievalEvent catchEv)
+        {
+            _socket = socket;
+            _disconnect = disEv;
+            _catch = catchEv;
+        }
+
+        public async ValueTask DisposeAsync()
         { // почти все, что не приватное диспозим здесь!
-            throw new NotImplementedException();
+            await _inbounds.DisposeAsync();
+            await _outbounds.Writer.TryComplete();
         }
     }
 }

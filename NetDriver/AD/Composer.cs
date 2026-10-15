@@ -35,7 +35,7 @@ namespace NetDriver.AD
 
     interface IComposer
     {
-        public PipeWriter Inbounds { get; }
+        public Pipe Inbounds { get; }
         public Channel<Cat> Outbounds { get; }
         public CancellationToken Ct { get; }
         public Socket Socket { get; }
@@ -48,7 +48,7 @@ namespace NetDriver.AD
     }
     internal class Composer : IAsyncDisposable, IComposer
     {
-        public PipeWriter Inbounds => _inbounds.Writer;
+        public Pipe Inbounds => _inbounds;
 
         public Channel<Cat> Outbounds => _outbounds;
 

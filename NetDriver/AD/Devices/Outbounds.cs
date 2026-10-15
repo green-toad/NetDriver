@@ -5,17 +5,14 @@ namespace NetDriver.AD.Devices
 {
     internal class OutboundDevice : IAsyncDisposable
     {
-        private readonly Socket _socket;
-        private readonly Channel<Cat> _outChan;
         private readonly CancellationTokenSource _cts;
-        private readonly DisconnectLink _disconnect;
         private readonly Task _writer;
+
+        private readonly IComposer _composer;
         public OutboundDevice(IComposer composer)
         {
-            _socket = composer.Socket;
-            _outChan = composer.Outbounds;
             _cts = CancellationTokenSource.CreateLinkedTokenSource(composer.Ct);
-            _disconnect = composer.DisconnectEvent;
+            _composer = composer;
             _writer = Task.Run(Writing);
         }
 
@@ -23,10 +20,10 @@ namespace NetDriver.AD.Devices
         {
             try
             {
-                await foreach (var cat in _outChan.Reader.ReadAllAsync(_cts.Token))
+                await foreach (var cat in _composer.Outbounds.Reader.ReadAllAsync(_cts.Token))
                 {
                     var a = cat.Compress();
-                    await _socket.SendAsync(a, _cts.Token);
+                    await _composer.Socket.SendAsync(a, _cts.Token);
                 }
             }
             catch (OperationCanceledException) { }

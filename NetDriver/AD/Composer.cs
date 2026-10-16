@@ -37,6 +37,9 @@ namespace NetDriver.AD
     {
         public Pipe Inbounds { get; }
         public Channel<Cat> Outbounds { get; }
+
+        public ConcurrentDictionary<Guid, Cat> AnswerRequests = new();
+
         public CancellationToken Ct { get; }
         public Socket Socket { get; }
 

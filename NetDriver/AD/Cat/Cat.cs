@@ -132,11 +132,12 @@ namespace NetDriver.AD
         public enum Type : byte
         {
             PING = 0,
-            Single = 1,
-            Request = 2,
-            Answer = 3,
+            PONG = 1,
+            Single = 2,
+            Request = 3,
+            Answer = 4,
             FileStreamConfig = 4,
-            FilePart = 5,
+            FilePart = 6,
         }
     }
 }

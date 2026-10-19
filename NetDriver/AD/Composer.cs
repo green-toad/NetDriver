@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.IO.Pipelines;
 using System.Net.Sockets;
 using System.Threading.Channels;
@@ -38,7 +39,7 @@ namespace NetDriver.AD
         public Pipe Inbounds { get; }
         public Channel<Cat> Outbounds { get; }
 
-        public ConcurrentDictionary<Guid, Cat> AnswerRequests = new();
+        public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests { get; }
 
         public CancellationToken Ct { get; }
         public Socket Socket { get; }
@@ -67,8 +68,11 @@ namespace NetDriver.AD
 
         public Decrypt DecFunc => _dec;
 
+        public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests => _answerRequests;
+
         private readonly Pipe _inbounds;
         private readonly Channel<Cat> _outbounds = Channel.CreateBounded<Cat>(100);
+        private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> _answerRequests = new();
         private readonly CancellationTokenSource _cts = new();
         private readonly Socket _socket;
         private readonly DisconnectLink _disconnect;

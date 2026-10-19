@@ -40,9 +40,20 @@ namespace NetDriver.AD.Devices
                     var body = new Cat.Body(head, bodyBytes);
                     var cat = new Cat(head, body);
 
-                    // TODO: обработка кота
-                    // _composer.ToUserEvent?.Invoke(cat);
-                    // или _composer.Outbounds.Writer.TryWrite(cat);
+                    switch (cat.head.type)
+                    {
+                        case Cat.Type.Answer:
+                            if (_composer.AnswerRequests.TryRemove(cat.head.uid, out var res))
+                            {
+                                res.TrySetResult(cat);
+                            }
+                            break;
+                        case Cat.Type.PING:
+                            break;
+                        default:
+                            _composer.ToUserEvent(cat);
+                            break;
+                    }
                 }
             }
             catch (OperationCanceledException) { }

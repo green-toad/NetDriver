@@ -22,7 +22,7 @@ namespace NetDriver.AD.Devices
             {
                 await foreach (var cat in _composer.Outbounds.Reader.ReadAllAsync(_cts.Token))
                 {
-                    var a = cat.Compress();
+                    var a = await _composer.EncFunc(cat.Compress());
                     await _composer.Socket.SendAsync(a, _cts.Token);
                 }
             }

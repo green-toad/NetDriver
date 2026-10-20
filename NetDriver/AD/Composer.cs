@@ -26,12 +26,6 @@ namespace NetDriver.AD
     // тоесть, Channel<***>.CreateBounded<***>(20) . . . Chan.AddAsync() <-- вот так делать нельзя
     // а вот Channel<***>.CreateUnbounded<***>() . . . Chan.AddAsync() <---- можно, потому что операция по сути происходит мнгновенно, и ожидать операции незачем.
     // (^‿^)
-    delegate void DisconnectLink(Socket socket);
-    delegate void CatRetrievalEvent(Cat cat);
-
-    delegate Task<byte[]> Encrypt(byte[] data);
-    delegate Task<byte[]> Decrypt(byte[] data);
-
 
 
     interface IComposer
@@ -64,9 +58,9 @@ namespace NetDriver.AD
 
         public CatRetrievalEvent ToUserEvent => _catch;
 
-        public Encrypt EncFunc => _enc;
+        public Encrypt? EncFunc => _enc;
 
-        public Decrypt DecFunc => _dec;
+        public Decrypt? DecFunc => _dec;
 
         public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests => _answerRequests;
 
@@ -83,19 +77,22 @@ namespace NetDriver.AD
         private readonly InboundDevice _inDev;
         private readonly OutboundDevice _outDev;
 
+        private async Task<byte[]> EncPlug(byte[] content) { return content; }
+        private async Task<byte[]> DecPlug(byte[] content) { return content; }
+
         public Composer(
             Socket socket,
             DisconnectLink disEv,
             CatRetrievalEvent catchEv,
-            Encrypt encrypt,
-            Decrypt decrypt
+            Encrypt? encrypt,
+            Decrypt? decrypt
             )
         {
             _socket = socket;
             _disconnect = disEv;
             _catch = catchEv;
-            _enc = encrypt;
-            _dec = decrypt;
+            _enc = encrypt == null ? EncPlug : encrypt;
+            _dec = decrypt == null ? DecPlug : decrypt;
             _inbounds = new Pipe(new PipeOptions(
                 pauseWriterThreshold: 64 * 1024,
                 resumeWriterThreshold: 32 * 1024,
@@ -107,11 +104,13 @@ namespace NetDriver.AD
 
         public async ValueTask DisposeAsync()
         { // почти все, что не приватное диспозим здесь!
+            _cts.Cancel();
             await _inbounds.Writer.CompleteAsync();
             await _inbounds.Reader.CompleteAsync();
             await _inDev.DisposeAsync();
             await _outDev.DisposeAsync();
             _outbounds.Writer.Complete();
+            _cts.Dispose();
         }
     }
 }

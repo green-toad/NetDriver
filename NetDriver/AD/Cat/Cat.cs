@@ -3,7 +3,7 @@ using AVcontrol;
 
 namespace NetDriver.AD
 {
-    internal class Cat
+    public class Cat
     {
         public Head head { get; private set; }
         public Body body { get; private set; }
@@ -136,7 +136,7 @@ namespace NetDriver.AD
             Single = 2,
             Request = 3,
             Answer = 4,
-            FileStreamConfig = 4,
+            FileStreamConfig = 5,
             FilePart = 6,
         }
     }

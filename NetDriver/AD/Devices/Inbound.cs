@@ -27,9 +27,9 @@ namespace NetDriver.AD.Devices
                 await _reader;
                 _cts.Dispose();
             }
-            catch
+            catch(Exception e)
             {
-                Console.Write("какая то фигня при освобождении ресурсов в Inbounds\n");
+                _composer.Loger.Log(this, e);
             }
         }
 

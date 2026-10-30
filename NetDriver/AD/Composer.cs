@@ -7,10 +7,11 @@ using NetDriver.AD.Devices;
 
 
 /*
-всего 4 элемента
+всего 5 элементов
 
 входящий и отправляющий девайсы
 композитор
+устройство дешифровщик
 и обработчик
 
 
@@ -25,15 +26,15 @@ using NetDriver.AD.Devices;
 namespace NetDriver.AD
 {
     // предпологается, что ни в одном из делегатов либо нет IO операций, либо длительность выполнения их стремится к 0 и ожибать их с await не нужно.
-    // тоесть, Channel<***>.CreateBounded<***>(20) . . . Chan.AddAsync() <-- вот так делать нельзя
-    // а вот Channel<***>.CreateUnbounded<***>() . . . Chan.AddAsync() <---- можно, потому что операция по сути происходит мнгновенно, и ожидать операции незачем.
+    // тоесть, Channel<***>.CreateBounded<***>(20) . . . Chan.AddAsync() <-- вот так делать нельзя (в нашем частном случае)
+    // а вот Channel<***>.CreateUnbounded<***>() . . . Chan.AddAsync() <---- можно, потому что операция по сути происходит мгновенно, и ожидать операции незачем.
     // (^‿^)
 
 
     interface IComposer
     {
         public Pipe Inbounds { get; }
-        public Pipe PlainText { get; }
+        public Pipe Decryptor { get; }
         public Channel<Cat> Outbounds { get; }
 
         public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests { get; }
@@ -46,12 +47,14 @@ namespace NetDriver.AD
 
         public Encrypt EncFunc { get; }
         public Decrypt DecFunc { get; }
+
+        public LogerDevice Loger { get; }
     }
     internal class Composer : IAsyncDisposable, IComposer
     {
         public Pipe Inbounds => _inbounds;
 
-        public Pipe PlainText => _plainText;
+        public Pipe Decryptor => _decryptor;
 
         public Channel<Cat> Outbounds => _outbounds;
 
@@ -69,8 +72,10 @@ namespace NetDriver.AD
 
         public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests => _answerRequests;
 
+        public LogerDevice Loger => _log;
+
         private readonly Pipe _inbounds;
-        private readonly Pipe _plainText;
+        private readonly Pipe _decryptor;
         private readonly Channel<Cat> _outbounds = Channel.CreateBounded<Cat>(100);
         private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> _answerRequests = new();
         private readonly CancellationTokenSource _cts = new();
@@ -80,8 +85,10 @@ namespace NetDriver.AD
         private readonly Encrypt _enc;
         private readonly Decrypt _dec;
 
+        private readonly LogerDevice _log;
         private readonly InboundDevice _inDev;
         private readonly OutboundDevice _outDev;
+        private readonly ProcessingCenterDevice _porcessingCenter;
 
         private async Task<byte[]> EncPlug(byte[] content) { return content; }
         private async Task<byte[]> DecPlug(byte[] content) { return content; }
@@ -103,13 +110,17 @@ namespace NetDriver.AD
                 pauseWriterThreshold: 64 * 1024,
                 resumeWriterThreshold: 32 * 1024,
                 useSynchronizationContext: false));
-            _plainText = new Pipe(new PipeOptions(
+            _decryptor = new Pipe(new PipeOptions(
                 pauseWriterThreshold: 64 * 1024,
                 resumeWriterThreshold: 32 * 1024,
                 useSynchronizationContext: false));
 
             _inDev = new(this);
             _outDev = new(this);
+
+            _porcessingCenter = new(this);
+
+            _log = new();
         }
 
         public async ValueTask DisposeAsync()
@@ -117,6 +128,8 @@ namespace NetDriver.AD
             _cts.Cancel();
             await _inbounds.Writer.CompleteAsync();
             await _inbounds.Reader.CompleteAsync();
+            await _decryptor.Reader.CompleteAsync();
+            await _decryptor.Writer.CompleteAsync();
             await _inDev.DisposeAsync();
             await _outDev.DisposeAsync();
             _outbounds.Writer.Complete();

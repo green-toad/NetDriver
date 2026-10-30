@@ -54,6 +54,7 @@ namespace NetDriver.AD
                             }
                             catch (OperationCanceledException)
                             {
+                                _composer.AnswerRequests.Remove(cat.head.uid, out _);
                                 return null;
                             }
                         }

@@ -23,12 +23,12 @@ namespace NetDriver.AD.Devices
             {
                 while (!_cts.IsCancellationRequested)
                 {
-                    var headBytes = new byte[21];
-                    // достань из трубы декриптора чуть позже
+                    var headBytes = await ReadBuffer(21);
+
                     var head = new Cat.Head(headBytes);
 
-                    var bodyBytes = new byte[head.contentSize];
-                    // достань из трубы декриптора чуть позже
+                    var bodyBytes = await ReadBuffer(head.contentSize);
+
                     var body = new Cat.Body(head, bodyBytes);
                     var cat = new Cat(head, body);
 
@@ -49,10 +49,28 @@ namespace NetDriver.AD.Devices
                 }
             }
             catch (OperationCanceledException) { }
-            catch
+            catch (Exception e)
             {
-                Console.Write("ошибка в обработчике [ProcessingCenterDevice]\n");
+                _composer.Loger.Log(this, e);
             }
+        }
+
+        private async Task<byte[]> ReadBuffer(UInt32 buffLenght)
+        {
+            var bytes = new byte[buffLenght];
+            while (true)
+            {
+                var res = await _composer.Decryptor.Reader.ReadAsync(_cts.Token);
+                if (res.Buffer.Length < buffLenght)
+                {
+                    _composer.Decryptor.Reader.AdvanceTo(res.Buffer.Start, res.Buffer.End);
+                    continue;
+                }
+                res.Buffer.Slice(0, buffLenght).CopyTo(bytes);
+                _composer.Decryptor.Reader.AdvanceTo(res.Buffer.GetPosition(buffLenght));
+                break;
+            }
+            return bytes;
         }
 
         public async ValueTask DisposeAsync()

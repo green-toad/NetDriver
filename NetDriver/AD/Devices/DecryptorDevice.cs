@@ -16,20 +16,44 @@ namespace NetDriver.AD.Devices
             _decryptor = Task.Run(Decrypting);
         }
 
-        public ValueTask DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            throw new NotImplementedException();
+            _cts.Cancel();
+            await _decryptor;
+            _cts.Dispose();
         }
 
         private async Task Decrypting()
         {
             while (!_cts.IsCancellationRequested)
             {
-                var income = await _composer.Inbounds.Reader.ReadAsync();
-                var bytes = income.Buffer.ToArray();
+                try
+                {
+                    var income = await _composer.Inbounds.Reader.ReadAsync();
+                    var bytes = income.Buffer.ToArray();
+                    _composer.Inbounds.Reader.AdvanceTo(income.Buffer.End);
 
-                var mem = _composer.PlainText.Writer.GetMemory(bytes.Length);
-                // Buffer.BlockCopy(bytes, 0, mem, 0, bytes.Length);
+                    if (bytes.Length > 0)
+                    {
+                        byte[] result = await _composer.DecFunc(bytes);
+
+                        if (result.Length > 0)
+                        {
+                            Memory<byte> mem = _composer.Decryptor.Writer.GetMemory(result.Length);
+                            result.AsSpan().CopyTo(mem.Span);
+                            _composer.Decryptor.Writer.Advance(result.Length);
+                        }
+                    }
+
+                    var flush = await _composer.Decryptor.Writer.FlushAsync(_cts.Token);
+
+                    if (flush.IsCompleted || flush.IsCanceled) break;
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception e)
+                {
+                    _composer.Loger.Log(this, e);
+                }
             }
         }
     }

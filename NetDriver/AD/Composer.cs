@@ -31,7 +31,7 @@ namespace NetDriver.AD
     // (^‿^)
 
 
-    interface IComposer
+    interface IComposer : IAsyncDisposable
     {
         public Pipe Inbounds { get; }
         public Pipe Decryptor { get; }
@@ -50,7 +50,7 @@ namespace NetDriver.AD
 
         public LogerDevice Loger { get; }
     }
-    internal class Composer : IAsyncDisposable, IComposer
+    internal class Composer : IComposer
     {
         public Pipe Inbounds => _inbounds;
 

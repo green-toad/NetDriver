@@ -9,7 +9,7 @@ namespace NetDriver.AD
     public delegate Task<byte[]> Encrypt(byte[] data);
     public delegate Task<byte[]> Decrypt(byte[] data);
 
-    public class Networker
+    public class Networker : IAsyncDisposable
     {
         private readonly IComposer _composer;
         public Networker(
@@ -27,6 +27,11 @@ namespace NetDriver.AD
                 encrypt,
                 decrypt
             );
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _composer.DisposeAsync();
         }
 
         public async Task<Cat?> Send(Cat cat, UInt16 timeout = 2000)

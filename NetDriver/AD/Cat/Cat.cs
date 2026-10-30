@@ -8,6 +8,12 @@ namespace NetDriver.AD
         public Head head { get; private set; }
         public Body body { get; private set; }
 
+        public static Cat Create(byte[] content, Cat.Type type)
+        {
+            var head = new Head(Guid.NewGuid(), (UInt32)content.Length, type);
+            return new Cat(head, new Body(head, content));
+        }
+
         public Cat(byte[] bytes)
         {
             head = new Head(bytes[..21]);

@@ -18,6 +18,8 @@ using NetDriver.AD.Devices;
 
 входящий и исходящий слушает и отправляет
 
+между входящим и обработчиком есть прослойка -- дешифрует трафик не аланизируя его
+
 обработчик обробатывает и перекладывает из очереди в очередь
 */
 namespace NetDriver.AD
@@ -31,6 +33,7 @@ namespace NetDriver.AD
     interface IComposer
     {
         public Pipe Inbounds { get; }
+        public Pipe PlainText { get; }
         public Channel<Cat> Outbounds { get; }
 
         public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests { get; }
@@ -48,6 +51,8 @@ namespace NetDriver.AD
     {
         public Pipe Inbounds => _inbounds;
 
+        public Pipe PlainText => _plainText;
+
         public Channel<Cat> Outbounds => _outbounds;
 
         public CancellationToken Ct => _cts.Token;
@@ -58,13 +63,14 @@ namespace NetDriver.AD
 
         public CatRetrievalEvent ToUserEvent => _catch;
 
-        public Encrypt? EncFunc => _enc;
+        public Encrypt EncFunc => _enc;
 
-        public Decrypt? DecFunc => _dec;
+        public Decrypt DecFunc => _dec;
 
         public ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> AnswerRequests => _answerRequests;
 
         private readonly Pipe _inbounds;
+        private readonly Pipe _plainText;
         private readonly Channel<Cat> _outbounds = Channel.CreateBounded<Cat>(100);
         private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Cat>> _answerRequests = new();
         private readonly CancellationTokenSource _cts = new();
@@ -94,6 +100,10 @@ namespace NetDriver.AD
             _enc = encrypt == null ? EncPlug : encrypt;
             _dec = decrypt == null ? DecPlug : decrypt;
             _inbounds = new Pipe(new PipeOptions(
+                pauseWriterThreshold: 64 * 1024,
+                resumeWriterThreshold: 32 * 1024,
+                useSynchronizationContext: false));
+            _plainText = new Pipe(new PipeOptions(
                 pauseWriterThreshold: 64 * 1024,
                 resumeWriterThreshold: 32 * 1024,
                 useSynchronizationContext: false));

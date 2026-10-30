@@ -45,7 +45,9 @@ namespace NetDriver.AD.Devices
                     if (recivedLenght == 0)
                     {
                         _composer.DisconnectEvent(_composer.Socket); // токен отменится при вызове поэтому break не нужен
+                        break;
                     }
+                    _composer.Inbounds.Writer.Advance(recivedLenght);
                     await _composer.Inbounds.Writer.FlushAsync(_cts.Token);
                 }
             }
